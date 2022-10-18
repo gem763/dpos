@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import KalmanFilter from 'kalmanjs';
+import { Euler } from 'three';
 const kf = new KalmanFilter({R: 1, Q: 3}); //console.log(kf)
 // import javascriptLogo from './javascript.svg'
 // console.log(process)
@@ -7,6 +8,18 @@ const kf = new KalmanFilter({R: 1, Q: 3}); //console.log(kf)
 // let d = 0;
 
 // let cnt = 0;
+
+const show_alpha = document.getElementById('alpha');
+const show_beta = document.getElementById('beta');
+const show_gamma = document.getElementById('gamma');
+
+const show_x = document.getElementById('x');
+const show_y = document.getElementById('y');
+const show_z = document.getElementById('z');
+
+const show_right = document.getElementById('right');
+const show_up = document.getElementById('up');
+const show_back = document.getElementById('back');
 
 
 const nBuffer = 30;
@@ -19,7 +32,32 @@ let alpha;
 let beta;
 let gamma;
 
-const accVector = new THREE.Vector3(); console.log(accVector)
+const accVector = new THREE.Vector3(); //console.log(accVector)
+
+// X축 30도 돌리기(beta)
+// accVector.set(0, -4.9, -4.9*Math.sqrt(3));
+// accVector.applyEuler(new THREE.Euler(-(90-30) * Math.PI / 180, 0, 0, 'XYZ'));
+// console.log(accVector)
+
+// Y축 30도 돌리기(gamma)
+// accVector.set(4.9, 0, -4.9*Math.sqrt(3));
+// accVector.applyEuler(new THREE.Euler(0, 30 * Math.PI / 180, 0, 'XYZ'));
+// console.log(accVector)
+
+// Y축 -30도 돌리기(gamma)
+// accVector.set(-4.9, 0, -4.9*Math.sqrt(3));
+// accVector.applyEuler(new THREE.Euler(0, -30 * Math.PI / 180, 0, 'XYZ'));
+// console.log(accVector)
+
+// Z축 30도 돌리기(alpha)
+// accVector.set(-4.9, -4.9*Math.sqrt(3), 0);
+// accVector.applyEuler(new THREE.Euler(0, 0, 30 * Math.PI / 180, 'XYZ'));
+// console.log(accVector)
+
+// Z축 330도(=-30도) 돌리기(alpha)
+accVector.set(4.9, -4.9*Math.sqrt(3), 0);
+accVector.applyEuler(new THREE.Euler(0, 0, 330 * Math.PI / 180, 'XYZ'));
+console.log(accVector)
 
 const rounded = num => {
 	return Math.round(num * prec) / prec
@@ -54,18 +92,26 @@ const devicemotionHandler = e => {
 	// console.log(rounded(xNorm), rounded(yNorm), rounded(zNorm));
 	// console.log(rounded(xAcc), rounded(yAcc), rounded(zAcc));
 	accVector.set(xAcc, yAcc, zAcc);
-	accVector.applyEuler(new THREE.Euler(beta, gamma, alpha, 'XYZ'));
-	console.log(accVector)
+	accVector.applyEuler(new THREE.Euler(beta, gamma, alpha, 'ZXY'));
+	// accVector.applyEuler(new THREE.Euler(-alpha, -beta, -gamma, 'ZXY'));
+	// console.log(accVector)
 	// console.log(acc.z, kf.filter(acc.z))
+	show_x.innerHTML = Math.round(xAcc);
+	show_y.innerHTML = Math.round(yAcc);
+	show_z.innerHTML = Math.round(zAcc);
+
+	show_right.innerHTML = Math.round(accVector.x);
+	show_up.innerHTML = Math.round(accVector.y);
+	show_back.innerHTML = Math.round(accVector.z);
 }
 
 const deviceorientationHandler = e => {
-	alpha = -e.alpha * Math.PI / 180;
-	beta = -(e.beta - 90) * Math.PI / 180;
-	gamma = -e.gamma * Math.PI / 180;
-	console.log(rounded(e.alpha), rounded(e.beta), rounded(e.gamma));
-	// process.stdout.write(1234);
-	// console.log(process)
+	alpha = e.alpha * Math.PI / 180;
+	beta = -(90 - e.beta) * Math.PI / 180;
+	gamma = e.gamma * Math.PI / 180;
+	show_alpha.innerHTML = Math.round(e.alpha);
+	show_beta.innerHTML = Math.round(e.beta);
+	show_gamma.innerHTML = Math.round(e.gamma);
 }
 
 
@@ -140,5 +186,5 @@ function toggleDeviceOrientation() {
 // };
 
 
-// document.querySelector('#activateSensor').addEventListener('click', toggleDeviceMotion);
+document.querySelector('#activateSensor').addEventListener('click', toggleDeviceMotion);
 document.querySelector('#activateSensor').addEventListener('click', toggleDeviceOrientation);
