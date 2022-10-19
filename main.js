@@ -1,9 +1,24 @@
 import * as THREE from 'three';
 import KalmanFilter from 'kalmanjs';
 import { Euler } from 'three';
-const kf = new KalmanFilter({R: 1, Q: 3}); //console.log(kf)
-// import javascriptLogo from './javascript.svg'
-// console.log(process)
+// var Quaternion = require('quaternion');
+import Quaternion from 'quaternion';
+
+
+let _alpha = 90 * Math.PI / 180;
+let _beta = 0 * Math.PI / 180;
+let _gamma = 0 * Math.PI / 180;
+
+
+let q = Quaternion.fromEuler(_alpha, _beta, _gamma, 'ZXY');
+console.log(q);//.conjugate().toMatrix4())
+
+
+let _q = new THREE.Quaternion().setFromEuler(new THREE.Euler(_beta, _gamma, _alpha, 'XYZ'))
+console.log(_q)
+
+// const kf = new KalmanFilter({R: 1, Q: 3}); 
+
 // let v = 0;
 // let d = 0;
 
@@ -32,7 +47,7 @@ let alpha;
 let beta;
 let gamma;
 
-const accVector = new THREE.Vector3(); //console.log(accVector)
+const accVector = new THREE.Vector3(); 
 
 // X축 30도 돌리기(beta)
 // accVector.set(0, -4.9, -4.9*Math.sqrt(3));
@@ -55,9 +70,9 @@ const accVector = new THREE.Vector3(); //console.log(accVector)
 // console.log(accVector)
 
 // Z축 330도(=-30도) 돌리기(alpha)
-accVector.set(4.9, -4.9*Math.sqrt(3), 0);
-accVector.applyEuler(new THREE.Euler(0, 0, 330 * Math.PI / 180, 'XYZ'));
-console.log(accVector)
+// accVector.set(4.9, -4.9*Math.sqrt(3), 0);
+// accVector.applyEuler(new THREE.Euler(0, 0, 330 * Math.PI / 180, 'XYZ'));
+// console.log(accVector)
 
 const rounded = num => {
 	return Math.round(num * prec) / prec
@@ -77,6 +92,14 @@ const normalized = (val, array) => {
 }
 
 const devicemotionHandler = e => {
+  // if (Math.abs(90-beta) < 5) {
+  //   return
+  // }
+
+  // if ((gamma < -85) || (85 < gamma) ||
+  //     (beta < -175) || (175 < beta)) {
+  //   return
+  // }
 	// const az = e.acceleration.z;
 	// const dt = e.interval;
 
@@ -107,7 +130,9 @@ const devicemotionHandler = e => {
 
 const deviceorientationHandler = e => {
 	alpha = e.alpha * Math.PI / 180;
-	beta = -(90 - e.beta) * Math.PI / 180;
+	// beta = -(90 - (e.beta > 0 ? e.beta : e.beta + 180)) * Math.PI / 180;
+	// gamma = (e.gamma > 0 ? e.gamma : e.gamma + 90) * Math.PI / 180;
+  beta = -(90 - e.beta) * Math.PI / 180;
 	gamma = e.gamma * Math.PI / 180;
 	show_alpha.innerHTML = Math.round(e.alpha);
 	show_beta.innerHTML = Math.round(e.beta);
