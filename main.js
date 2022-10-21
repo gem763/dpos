@@ -1,78 +1,67 @@
 import * as THREE from 'three';
 import KalmanFilter from 'kalmanjs';
-import { Euler } from 'three';
-// var Quaternion = require('quaternion');
-import Quaternion from 'quaternion';
+// import Quaternion from 'quaternion';
 
-
-let _alpha = 90 * Math.PI / 180;
-let _beta = 0 * Math.PI / 180;
-let _gamma = 0 * Math.PI / 180;
-
-
-let q = Quaternion.fromEuler(_alpha, _beta, _gamma, 'ZXY');
-console.log(q);//.conjugate().toMatrix4())
-
-
-let _q = new THREE.Quaternion().setFromEuler(new THREE.Euler(_beta, _gamma, _alpha, 'XYZ'))
-console.log(_q)
-
-// const kf = new KalmanFilter({R: 1, Q: 3}); 
-
-// let v = 0;
-// let d = 0;
-
-// let cnt = 0;
+const kf_x = new KalmanFilter({R: 0.01, Q: 20});
+const kf_y = new KalmanFilter({R: 0.01, Q: 20});
+const kf_z = new KalmanFilter({R: 0.01, Q: 20});
 
 const show_alpha = document.getElementById('alpha');
 const show_beta = document.getElementById('beta');
 const show_gamma = document.getElementById('gamma');
 
+const show_v_alpha = document.getElementById('v-alpha');
+const show_v_beta = document.getElementById('v-beta');
+const show_v_gamma = document.getElementById('v-gamma');
+
 const show_x = document.getElementById('x');
 const show_y = document.getElementById('y');
 const show_z = document.getElementById('z');
 
-const show_right = document.getElementById('right');
-const show_up = document.getElementById('up');
-const show_back = document.getElementById('back');
+const show_i = document.getElementById('i');
+const show_j = document.getElementById('j');
+const show_k = document.getElementById('k');
+
+const show_vi = document.getElementById('vi');
+const show_vj = document.getElementById('vj');
+const show_vk = document.getElementById('vk');
+
+const show_di = document.getElementById('di');
+const show_dj = document.getElementById('dj');
+const show_dk = document.getElementById('dk');
+
+const show_moving = document.getElementById('moving');
 
 
-const nBuffer = 30;
-const prec = 10000;
+const nBuffer = 300;
+const prec = 100;//00;
 let xAccArray = [];
 let yAccArray = [];
 let zAccArray = [];
+
+let iAccArray = [];
+let jAccArray = [];
+let kAccArray = [];
+
+let betaAccArray = [];
+let gammaAccArray = [];
+let alphaAccArray = [];
+
+let viAccArray = [];
+let vjAccArray = [];
+let vkAccArray = [];
+
+let diAccArray = [];
+let djAccArray = [];
+let dkAccArray = [];
 
 let alpha;
 let beta;
 let gamma;
 
-const accVector = new THREE.Vector3(); 
+let onMove = false;
 
-// X축 30도 돌리기(beta)
-// accVector.set(0, -4.9, -4.9*Math.sqrt(3));
-// accVector.applyEuler(new THREE.Euler(-(90-30) * Math.PI / 180, 0, 0, 'XYZ'));
-// console.log(accVector)
-
-// Y축 30도 돌리기(gamma)
-// accVector.set(4.9, 0, -4.9*Math.sqrt(3));
-// accVector.applyEuler(new THREE.Euler(0, 30 * Math.PI / 180, 0, 'XYZ'));
-// console.log(accVector)
-
-// Y축 -30도 돌리기(gamma)
-// accVector.set(-4.9, 0, -4.9*Math.sqrt(3));
-// accVector.applyEuler(new THREE.Euler(0, -30 * Math.PI / 180, 0, 'XYZ'));
-// console.log(accVector)
-
-// Z축 30도 돌리기(alpha)
-// accVector.set(-4.9, -4.9*Math.sqrt(3), 0);
-// accVector.applyEuler(new THREE.Euler(0, 0, 30 * Math.PI / 180, 'XYZ'));
-// console.log(accVector)
-
-// Z축 330도(=-30도) 돌리기(alpha)
-// accVector.set(4.9, -4.9*Math.sqrt(3), 0);
-// accVector.applyEuler(new THREE.Euler(0, 0, 330 * Math.PI / 180, 'XYZ'));
-// console.log(accVector)
+const accWorld = new THREE.Vector3(); 
 
 const rounded = num => {
 	return Math.round(num * prec) / prec
@@ -91,52 +80,155 @@ const normalized = (val, array) => {
 	return avg(array)
 }
 
-const devicemotionHandler = e => {
-  // if (Math.abs(90-beta) < 5) {
-  //   return
-  // }
 
-  // if ((gamma < -85) || (85 < gamma) ||
-  //     (beta < -175) || (175 < beta)) {
-  //   return
-  // }
-	// const az = e.acceleration.z;
-	// const dt = e.interval;
+let dt = 0;
+// let v = 0;
+// let d = 0;
+// let a = 0;
 
-	// d = (v * dt) + (0.5 * az * (dt**2));
-	// v += az * dt;
+let v = new THREE.Vector3();
+let d = new THREE.Vector3();
 
-	// console.log(alpha, beta, gamma)
-
-	const acc = e.accelerationIncludingGravity;
-	const xAcc = normalized(acc.x, xAccArray);
-	const yAcc = normalized(acc.y, yAccArray);
-	const zAcc = normalized(acc.z, zAccArray);
-	// console.log(rounded(xNorm), rounded(yNorm), rounded(zNorm));
-	// console.log(rounded(xAcc), rounded(yAcc), rounded(zAcc));
-	accVector.set(xAcc, yAcc, zAcc);
-	accVector.applyEuler(new THREE.Euler(beta, gamma, alpha, 'ZXY'));
-	// accVector.applyEuler(new THREE.Euler(-alpha, -beta, -gamma, 'ZXY'));
-	// console.log(accVector)
-	// console.log(acc.z, kf.filter(acc.z))
-	show_x.innerHTML = Math.round(xAcc);
-	show_y.innerHTML = Math.round(yAcc);
-	show_z.innerHTML = Math.round(zAcc);
-
-	show_right.innerHTML = Math.round(accVector.x);
-	show_up.innerHTML = Math.round(accVector.y);
-	show_back.innerHTML = Math.round(accVector.z);
+export function get_dj() {
+	return d.y
 }
 
+export function get_vj() {
+	return v.y
+}
+
+// let t0 = 0;
+const devicemotionHandler = e => {
+	const acc = e.acceleration;//IncludingGravity;
+	const rotRate = e.rotationRate;
+	// const xAcc = normalized(acc.x, xAccArray);
+	// const yAcc = normalized(acc.y, yAccArray);
+	// const zAcc = normalized(acc.z, zAccArray);
+	accWorld.set(acc.x, acc.y, acc.z);
+
+	const euler = new THREE.Euler(beta, gamma, alpha, 'ZXY');
+	const q = new THREE.Quaternion().setFromEuler(euler).conjugate();
+	const q_inv = q.invert();
+	accWorld.applyQuaternion(q_inv);
+	// accWorld.setX(kf_x.filter(accWorld.x));
+	// accWorld.setY(kf_y.filter(accWorld.y));
+	// accWorld.setZ(kf_z.filter(accWorld.z));
+
+	const iAcc = normalized(kf_x.filter(accWorld.x), iAccArray);
+	const jAcc = normalized(kf_y.filter(accWorld.y), jAccArray);
+	const kAcc = normalized(kf_z.filter(accWorld.z), kAccArray);
+
+	accWorld.setX(iAcc);
+	accWorld.setY(jAcc);
+	accWorld.setZ(kAcc);
+
+	show_x.innerHTML = rounded(acc.x);
+	show_y.innerHTML = rounded(acc.y);
+	show_z.innerHTML = rounded(acc.z);
+
+	show_i.innerHTML = rounded(accWorld.x);
+	show_j.innerHTML = rounded(accWorld.y);
+	show_k.innerHTML = rounded(accWorld.z);
+
+	show_v_alpha.innerHTML = Math.round(rotRate.alpha);
+	show_v_beta.innerHTML = Math.round(rotRate.beta);
+	show_v_gamma.innerHTML = Math.round(rotRate.gamma);
+
+	const rotRateTotal = Math.sqrt(rotRate.alpha**2 + rotRate.beta**2 + rotRate.gamma**2);
+
+	if (rotRateTotal > 10) {
+		onMove = true;
+		show_moving.innerHTML = 'moving';
+	} else {
+		onMove = false;
+		show_moving.innerHTML = '';
+		accWorld.set(0, 0, 0);
+		v.set(0, 0, 0);
+	}
+
+	dt = e.interval;
+	// console.log(dt)
+	// const now = new Date().getTime();
+	// console.log((now - t0)/1000, dt);
+	// t0 = now;
+
+	// d += (v * dt) + (0.5 * a * (dt**2));
+	// v += a * dt;
+
+	d.add(v.clone().multiplyScalar(dt).add(accWorld.clone().multiplyScalar(0.5 * (dt**2))));
+	// d = v.clone().multiplyScalar(dt).add(accWorld.clone().multiplyScalar(0.5 * (dt**2)));
+	// v = accWorld.clone().multiplyScalar(dt);
+	v.add(accWorld.clone().multiplyScalar(dt));
+
+	// const vi = normalized(v.x, viAccArray);
+	// const vj = normalized(v.y, vjAccArray);
+	// const vk = normalized(v.z, vkAccArray);
+
+	show_vi.innerHTML = rounded(v.x);
+	show_vj.innerHTML = rounded(v.y);
+	show_vk.innerHTML = rounded(v.z);
+
+	show_di.innerHTML = rounded(d.x);
+	show_dj.innerHTML = rounded(d.y);
+	show_dk.innerHTML = rounded(d.z);
+}
+
+// const devicemotionHandler = e => {
+// 	const acc = e.accelerationIncludingGravity;
+// 	const xAcc = normalized(acc.x, xAccArray);
+// 	const yAcc = normalized(acc.y, yAccArray);
+// 	const zAcc = normalized(acc.z, zAccArray);
+// 	accWorld.set(xAcc, yAcc, zAcc);
+
+// 	const euler = new THREE.Euler(beta, gamma, alpha, 'ZXY');
+// 	const q = new THREE.Quaternion().setFromEuler(euler).conjugate();
+// 	const q_inv = q.invert();
+// 	accWorld.applyQuaternion(q_inv);
+// 	// accWorld.setX(kf_x.filter(accWorld.x));
+// 	// accWorld.setY(kf_y.filter(accWorld.y));
+// 	// accWorld.setZ(kf_z.filter(accWorld.z));
+
+// 	show_x.innerHTML = rounded(xAcc);
+// 	show_y.innerHTML = rounded(yAcc);
+// 	show_z.innerHTML = rounded(zAcc);
+
+// 	show_i.innerHTML = rounded(accWorld.x);
+// 	show_j.innerHTML = rounded(accWorld.y);
+// 	show_k.innerHTML = rounded(accWorld.z);
+
+// 	dt = e.interval;
+
+// 	// d += (v * dt) + (0.5 * a * (dt**2));
+// 	// v += a * dt;
+
+// 	d.add(v.clone().multiplyScalar(dt).add(accWorld.clone().multiplyScalar(0.5 * (dt**2))));
+// 	v.add(accWorld.clone().multiplyScalar(dt));
+
+// 	show_di.innerHTML = rounded(v.x);
+// 	show_dj.innerHTML = rounded(v.y);
+// 	show_dk.innerHTML = rounded(v.z);
+// }
+
 const deviceorientationHandler = e => {
+	// const _alpha = normalized(e.alpha, alphaAccArray);
+	// const _beta = normalized(e.beta, betaAccArray);
+	// const _gamma = normalized(e.gamma, gammaAccArray);
+
+	// alpha = _alpha * Math.PI / 180;
+	// beta = _beta * Math.PI / 180;
+	// gamma = _gamma * Math.PI / 180;
+
 	alpha = e.alpha * Math.PI / 180;
-	// beta = -(90 - (e.beta > 0 ? e.beta : e.beta + 180)) * Math.PI / 180;
-	// gamma = (e.gamma > 0 ? e.gamma : e.gamma + 90) * Math.PI / 180;
-  beta = -(90 - e.beta) * Math.PI / 180;
+	beta = e.beta * Math.PI / 180;
 	gamma = e.gamma * Math.PI / 180;
-	show_alpha.innerHTML = Math.round(e.alpha);
-	show_beta.innerHTML = Math.round(e.beta);
-	show_gamma.innerHTML = Math.round(e.gamma);
+
+	// show_alpha.innerHTML = rounded(_alpha);
+	// show_beta.innerHTML = rounded(_beta);
+	// show_gamma.innerHTML = rounded(_gamma);
+
+	show_alpha.innerHTML = rounded(e.alpha);
+	show_beta.innerHTML = rounded(e.beta);
+	show_gamma.innerHTML = rounded(e.gamma);
 }
 
 
@@ -194,22 +286,6 @@ function toggleDeviceOrientation() {
 		window.removeEventListener('deviceorientation', deviceorientationHandler);
 	}
 }
-
-
-// if (window.DeviceOrientationEvent) {
-//   window.addEventListener("deviceorientation", (event) => {
-//     const rotateDegrees = event.alpha; // alpha: rotation around z-axis
-//     const leftToRight = event.gamma; // gamma: left to right
-//     const frontToBack = event.beta; // beta: front back motion
-
-//     handleOrientationEvent(frontToBack, leftToRight, rotateDegrees);
-//   }, true);
-// }
-
-// const handleOrientationEvent = (frontToBack, leftToRight, rotateDegrees) => {
-//  console.log(frontToBack, leftToRight, rotateDegrees)
-// };
-
 
 document.querySelector('#activateSensor').addEventListener('click', toggleDeviceMotion);
 document.querySelector('#activateSensor').addEventListener('click', toggleDeviceOrientation);

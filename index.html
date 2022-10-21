@@ -1,34 +1,165 @@
-<!-- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite App</title>
-    <script type="module" src="/main.js"></script>
+    <!-- <script type="module" src="/main.js"></script> -->
+    <!-- <script type="module">
+      import { get_di } from '/main.js';
+    </script> -->
+
+    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+
+    <script type="module">
+      import { get_dj, get_vj } from '/main.js';
+
+      AFRAME.registerComponent('moving', {
+        tick: function() {
+          // const dj = get_dj();
+          // const vj = get_vj();
+          // this.el.object3D.position.z += 0.01;
+          // let delta = 0;
+          // if (vj > 0) {
+          //   delta = 0.01;
+          // } else if (vj < 0) {
+          //   delta = -0.01;
+          // } 
+
+          this.el.object3D.position.z = get_dj() * 10;
+          // console.log(dj)
+        },
+      });
+
+      AFRAME.scenes[0].camera.el.setAttribute('moving', '')
+      // console.log(AFRAME.scenes[0])
+    </script>
+
+    <script>
+    </script>
+
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 10px;
+        table-layout: fixed;
+      }
+      table, th, td {
+        border: 1px solid black;
+        text-align: center;
+      }
+      td {
+        height: 20px;
+      }
+
+      a-scene {
+        margin-top: 10px;
+        height: 250px;
+        width: 100%;
+      }
+    </style>
   </head>
   <body>
     <div id="app">
-      <button style='width:50%;height:100px;' id="activateSensor">테스트</button>
-      <p>alpha: <span id="alpha"></span></p>
-      <p>beta: <span id="beta"></span></p>
-      <p>gamma: <span id="gamma"></span></p>
+      <button style='width:100%;height:50px;font-size:20px' id="activateSensor">
+        <span id="moving"></span>
+      </button>
 
-      <br>
-      <p>device x: <span id="x"></span></p>
-      <p>device y: <span id="y"></span></p>
-      <p>device z: <span id="z"></span></p>
+      <table>
+        <tr>
+          <th>beta(x축)</th>
+          <th>gamma(y축)</th>
+          <th>alpha(z축)</th>
+        </tr>
+        <tr>
+          <td id="beta"></td>
+          <td id="gamma"></td>
+          <td id="alpha"></td>
+        </tr>
+      </table>
 
-      <br>
-      <p>right: <span id="right"></span></p>
-      <p>up: <span id="up"></span></p>
-      <p>back: <span id="back"></span></p>
+      <table>
+        <tr>
+          <th>v-beta</th>
+          <th>v-gamma</th>
+          <th>v-alpha</th>
+        </tr>
+        <tr>
+          <td id="v-beta"></td>
+          <td id="v-gamma"></td>
+          <td id="v-alpha"></td>
+        </tr>
+      </table>
+
+      <table>
+        <tr>
+          <th>device x</th>
+          <th>device y</th>
+          <th>device z</th>
+        </tr>
+        <tr>
+          <td id="x"></td>
+          <td id="y"></td>
+          <td id="z"></td>
+        </tr>
+      </table>
+
+      <table>
+        <tr>
+          <th>world i</th>
+          <th>world j</th>
+          <th>world k</th>
+        </tr>
+        <tr>
+          <td id="i"></td>
+          <td id="j"></td>
+          <td id="k"></td>
+        </tr>
+      </table>
+
+      <table>
+        <tr>
+          <th>velocity i</th>
+          <th>velocity j</th>
+          <th>velocity k</th>
+        </tr>
+        <tr>
+          <td id="vi"></td>
+          <td id="vj"></td>
+          <td id="vk"></td>
+        </tr>
+      </table>
+
+      <table>
+        <tr>
+          <th>distance i</th>
+          <th>distance j</th>
+          <th>distance k</th>
+        </tr>
+        <tr>
+          <td id="di"></td>
+          <td id="dj"></td>
+          <td id="dk"></td>
+        </tr>
+      </table>
+
+      <a-scene embedded>
+        <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
+        <a-sphere position="0 1.25 -5" radius="1.25" color="#EF2D5E"></a-sphere>
+        <a-cylinder position="1 0.75 -3" radius="0.5" height="1.5" color="#FFC65D"></a-cylinder>
+        <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
+        <a-sky color="#ECECEC"></a-sky>
+
+        <a-entity camera look-controls position="0 1.6 0"></a-entity>
+      </a-scene>
     </div>
   </body>
-</html> -->
+</html>
 
 
-<!doctype HTML>
+<!-- <!doctype HTML>
 <html>
 
     <head>
@@ -196,4 +327,4 @@
         </script>
     </body>
 
-</html>
+</html> -->
