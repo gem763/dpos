@@ -13,6 +13,7 @@
     "vite-plugin-mkcert": "^1.10.1"
   },
   "dependencies": {
+    "gaussian": "^1.2.0",
     "kalmanjs": "^1.1.0",
     "quaternion": "^1.4.0",
     "three": "^0.145.0"

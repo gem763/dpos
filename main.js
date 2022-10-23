@@ -99,7 +99,7 @@ export function get_vj() {
 
 // let t0 = 0;
 const devicemotionHandler = e => {
-	const acc = e.acceleration;//IncludingGravity;
+	const acc = e.accelerationIncludingGravity;
 	const rotRate = e.rotationRate;
 	// const xAcc = normalized(acc.x, xAccArray);
 	// const yAcc = normalized(acc.y, yAccArray);
