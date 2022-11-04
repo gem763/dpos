@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "gaussian": "^1.2.0",
+    "gl-matrix": "^3.4.3",
     "kalmanjs": "^1.1.0",
     "quaternion": "^1.4.0",
     "three": "^0.145.0"
